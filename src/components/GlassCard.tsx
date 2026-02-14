@@ -13,8 +13,8 @@ const GlassCard = ({ children, className, hover, onClick }: GlassCardProps) => {
     <div 
       onClick={onClick}
       className={cn(
-        "bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 transition-all duration-300",
-        hover && "hover:bg-white/10 hover:border-white/20 cursor-pointer",
+        "glass-effect rounded-[2rem] p-6 transition-all duration-300",
+        hover && "hover:scale-[1.02] hover:bg-white/50 dark:hover:bg-black/50 cursor-pointer",
         className
       )}
     >

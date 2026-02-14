@@ -4,7 +4,8 @@ import { AppSettings, AIStrictness } from '../types/trust';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Download, Upload, Trash2, Bell, Moon, Percent, Brain, ShieldAlert } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Download, Trash2, Bell, Moon, Sun, Percent, Brain, ShieldAlert, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SettingsProps {
@@ -15,127 +16,143 @@ interface SettingsProps {
 }
 
 const Settings = ({ settings, onUpdateSettings, onReset, onExport }: SettingsProps) => {
+  const { theme, setTheme } = useTheme();
+
   const strictnessLevels: { id: AIStrictness; label: string; desc: string; color: string }[] = [
-    { id: 'LENIENT', label: 'Lenient', desc: 'Forgiving AI. Small penalties.', color: 'text-green-400' },
-    { id: 'BALANCED', label: 'Balanced', desc: 'Fair and consistent judgment.', color: 'text-blue-400' },
-    { id: 'STRICT', label: 'Strict', desc: 'High standards. No excuses.', color: 'text-orange-400' },
-    { id: 'SAVAGE', label: 'Savage', desc: 'Brutal honesty. Massive penalties.', color: 'text-red-400' },
+    { id: 'LENIENT', label: 'Lenient', desc: 'Forgiving AI. Small penalties.', color: 'text-green-500' },
+    { id: 'BALANCED', label: 'Balanced', desc: 'Fair and consistent judgment.', color: 'text-blue-500' },
+    { id: 'STRICT', label: 'Strict', desc: 'High standards. No excuses.', color: 'text-orange-500' },
+    { id: 'SAVAGE', label: 'Savage', desc: 'Brutal honesty. Massive penalties.', color: 'text-red-500' },
   ];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-8 pb-20">
       <header>
-        <h1 className="text-3xl font-bold text-white">Settings</h1>
-        <p className="text-white/50">Configure your Trust Bank experience</p>
+        <h1 className="text-4xl font-black tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">Personalize your Trust Bank experience</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GlassCard className="space-y-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Brain className="text-purple-400" size={20} />
-            AI Personality
+        <GlassCard className="space-y-8">
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <Palette className="text-primary" size={24} />
+            Appearance
           </h3>
           
+          <div className="flex items-center justify-between p-4 rounded-3xl bg-muted/50">
+            <div className="space-y-1">
+              <Label className="text-base font-bold flex items-center gap-2">
+                {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                Theme Mode
+              </Label>
+              <p className="text-xs text-muted-foreground">Switch between light and dark</p>
+            </div>
+            <div className="flex bg-muted p-1 rounded-2xl">
+              <button 
+                onClick={() => setTheme('light')}
+                className={cn("px-4 py-2 rounded-xl text-xs font-bold transition-all", theme === 'light' ? "bg-background shadow-sm" : "opacity-50")}
+              >
+                Light
+              </button>
+              <button 
+                onClick={() => setTheme('dark')}
+                className={cn("px-4 py-2 rounded-xl text-xs font-bold transition-all", theme === 'dark' ? "bg-background shadow-sm" : "opacity-50")}
+              >
+                Dark
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-4">
-            <Label className="text-white/60 text-xs uppercase tracking-widest">Judgment Strictness</Label>
-            <div className="grid grid-cols-1 gap-2">
+            <Label className="text-xs font-black uppercase tracking-widest opacity-40">AI Personality</Label>
+            <div className="grid grid-cols-1 gap-3">
               {strictnessLevels.map((level) => (
                 <button
                   key={level.id}
                   onClick={() => onUpdateSettings({ strictness: level.id })}
                   className={cn(
-                    "flex flex-col items-start p-3 rounded-xl border transition-all text-left",
+                    "flex flex-col items-start p-4 rounded-3xl border-2 transition-all text-left",
                     settings.strictness === level.id 
-                      ? "bg-purple-500/10 border-purple-500/50" 
-                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                      ? "bg-primary/5 border-primary" 
+                      : "bg-muted/30 border-transparent hover:bg-muted/50"
                   )}
                 >
                   <div className="flex justify-between w-full items-center">
-                    <span className={cn("font-bold", level.color)}>{level.label}</span>
-                    {settings.strictness === level.id && <div className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.5)]" />}
+                    <span className={cn("font-black text-lg", level.color)}>{level.label}</span>
+                    {settings.strictness === level.id && <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />}
                   </div>
-                  <span className="text-[10px] text-white/40 mt-1">{level.desc}</span>
+                  <span className="text-xs text-muted-foreground mt-1">{level.desc}</span>
                 </button>
               ))}
             </div>
           </div>
         </GlassCard>
 
-        <GlassCard className="space-y-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Preferences</h3>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-white flex items-center gap-2">
-                <Moon size={16} className="text-blue-400" /> Dark Mode
-              </Label>
-              <p className="text-xs text-white/40">Always active in this version</p>
-            </div>
-            <Switch checked={settings.darkMode} disabled />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-white flex items-center gap-2">
-                <Bell size={16} className="text-yellow-400" /> Notifications
-              </Label>
-              <p className="text-xs text-white/40">Daily check-in reminders</p>
-            </div>
-            <Switch 
-              checked={settings.notifications} 
-              onCheckedChange={(val) => onUpdateSettings({ notifications: val })}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label className="text-white flex items-center gap-2">
-              <Percent size={16} className="text-purple-400" /> Interest Rate Modifier
-            </Label>
-            <div className="flex items-center gap-4">
-              <input 
-                type="range" 
-                min="0" 
-                max="0.05" 
-                step="0.005"
-                value={settings.interestRate}
-                onChange={(e) => onUpdateSettings({ interestRate: parseFloat(e.target.value) })}
-                className="flex-1 accent-purple-500"
+        <div className="space-y-6">
+          <GlassCard className="space-y-6">
+            <h3 className="text-xl font-bold">Preferences</h3>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base font-bold flex items-center gap-2">
+                  <Bell size={18} className="text-yellow-500" /> Notifications
+                </Label>
+                <p className="text-xs text-muted-foreground">Daily check-in reminders</p>
+              </div>
+              <Switch 
+                checked={settings.notifications} 
+                onCheckedChange={(val) => onUpdateSettings({ notifications: val })}
               />
-              <span className="text-white font-mono">{(settings.interestRate * 100).toFixed(1)}%</span>
             </div>
-          </div>
-        </GlassCard>
+
+            <div className="space-y-4 pt-4 border-t">
+              <Label className="text-base font-bold flex items-center gap-2">
+                <Percent size={18} className="text-primary" /> Interest Rate Modifier
+              </Label>
+              <div className="flex items-center gap-6">
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="0.05" 
+                  step="0.005"
+                  value={settings.interestRate}
+                  onChange={(e) => onUpdateSettings({ interestRate: parseFloat(e.target.value) })}
+                  className="flex-1 accent-primary h-2 rounded-lg appearance-none bg-muted"
+                />
+                <span className="text-lg font-black min-w-[3rem]">{(settings.interestRate * 100).toFixed(1)}%</span>
+              </div>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="space-y-4">
+            <h3 className="text-xl font-bold">Data Management</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <Button 
+                onClick={onExport}
+                className="w-full h-14 rounded-2xl bg-muted hover:bg-muted/80 text-foreground font-bold justify-start px-6"
+              >
+                <Download className="mr-3" size={20} /> Export Data (JSON)
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={onReset}
+                className="w-full h-14 rounded-2xl font-bold justify-start px-6"
+              >
+                <Trash2 className="mr-3" size={20} /> Reset All Data
+              </Button>
+            </div>
+          </GlassCard>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GlassCard className="space-y-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Data Management</h3>
-          <div className="space-y-3">
-            <Button 
-              onClick={onExport}
-              className="w-full bg-white/5 hover:bg-white/10 border-white/10 text-white justify-start"
-            >
-              <Download className="mr-2" size={18} /> Export Data (JSON)
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={onReset}
-              className="w-full bg-red-500/20 hover:bg-red-500/30 border-red-500/30 text-red-400 justify-start"
-            >
-              <Trash2 className="mr-2" size={18} /> Reset All Data
-            </Button>
-          </div>
-        </GlassCard>
-
-        <GlassCard className="bg-purple-600/10 border-purple-500/20 flex flex-col items-center justify-center text-center py-10">
-          <ShieldAlert className="text-purple-400 mb-4" size={48} />
-          <h3 className="text-xl font-bold text-white">Trust Protocol v1.2</h3>
-          <p className="text-white/40 text-sm max-w-xs mt-2">
-            Your integrity is being monitored by the active judgment engine. 
-            Choose your strictness wisely.
-          </p>
-        </GlassCard>
-      </div>
+      <GlassCard className="bg-primary/5 border-primary/20 flex flex-col items-center justify-center text-center py-12">
+        <ShieldAlert className="text-primary mb-4" size={64} />
+        <h3 className="text-2xl font-black">Trust Protocol v2.0</h3>
+        <p className="text-muted-foreground text-sm max-w-md mt-2">
+          Your integrity is being monitored by the active judgment engine. 
+          Choose your strictness wisely. Every action is recorded.
+        </p>
+      </GlassCard>
     </div>
   );
 };
