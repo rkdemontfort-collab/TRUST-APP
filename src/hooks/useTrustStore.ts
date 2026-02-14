@@ -19,6 +19,7 @@ export const useTrustStore = () => {
     return {
       accounts: INITIAL_ACCOUNTS,
       messages: {},
+      globalMessages: [],
       settings: { interestRate: 0.01, darkMode: true, notifications: true, strictness: 'BALANCED' }
     };
   });
@@ -84,6 +85,30 @@ export const useTrustStore = () => {
     return transaction;
   }, [state.accounts, state.settings.strictness]);
 
+  const addMessage = useCallback((accountId: string | 'global', role: 'user' | 'assistant', content: string, transactionId?: string) => {
+    setState(prev => {
+      if (accountId === 'global') {
+        return {
+          ...prev,
+          globalMessages: [
+            ...prev.globalMessages,
+            { id: Math.random().toString(36).substr(2, 9), role, content, timestamp: new Date().toISOString(), transactionId }
+          ]
+        };
+      }
+      return {
+        ...prev,
+        messages: {
+          ...prev.messages,
+          [accountId]: [
+            ...(prev.messages[accountId] || []),
+            { id: Math.random().toString(36).substr(2, 9), role, content, timestamp: new Date().toISOString(), transactionId }
+          ]
+        }
+      };
+    });
+  }, []);
+
   const toggleFavorite = useCallback((accountId: string, transactionId: string) => {
     setState(prev => ({
       ...prev,
@@ -98,19 +123,6 @@ export const useTrustStore = () => {
         }
         return acc;
       })
-    }));
-  }, []);
-
-  const addMessage = useCallback((accountId: string, role: 'user' | 'assistant', content: string, transactionId?: string) => {
-    setState(prev => ({
-      ...prev,
-      messages: {
-        ...prev.messages,
-        [accountId]: [
-          ...(prev.messages[accountId] || []),
-          { id: Math.random().toString(36).substr(2, 9), role, content, timestamp: new Date().toISOString(), transactionId }
-        ]
-      }
     }));
   }, []);
 

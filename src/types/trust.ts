@@ -49,5 +49,6 @@ export interface AppSettings {
 export interface TrustState {
   accounts: TrustAccount[];
   messages: Record<string, Message[]>;
+  globalMessages: Message[];
   settings: AppSettings;
 }

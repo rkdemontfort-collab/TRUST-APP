@@ -4,13 +4,14 @@ import Dashboard from './Dashboard';
 import Accounts from './Accounts';
 import Insights from './Insights';
 import Settings from './Settings';
-import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon } from 'lucide-react';
+import GlobalChat from './GlobalChat';
+import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { showSuccess, showError } from '../utils/toast';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'insights' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'coach' | 'insights' | 'settings'>('dashboard');
   const { state, addTransaction, toggleFavorite, addMessage, updateGoal, resetData, setState } = useTrustStore();
 
   const getPersonalityResponse = (accountId: string, text: string, transaction?: any) => {
@@ -46,6 +47,10 @@ const Index = () => {
         deposit: "Solid move. That's what real friends do.",
         withdrawal: "That's a bit snakey. Trust is hard to build and easy to break.",
         casual: "I hear you. Friendship is all about that balance."
+      },
+      global: {
+        greeting: "I am the Integrity Coach. I oversee your entire trust network. How can I help you improve your overall standing today?",
+        casual: "I'm analyzing your patterns. Your overall score reflects your total reliability."
       }
     };
 
@@ -63,12 +68,17 @@ const Index = () => {
     return p.casual;
   };
 
-  const handleSendMessage = (accountId: string, text: string) => {
-    const account = state.accounts.find(a => a.id === accountId);
-    if (!account) return;
-
+  const handleSendMessage = (accountId: string | 'global', text: string) => {
     addMessage(accountId, 'user', text);
     
+    if (accountId === 'global') {
+      setTimeout(() => {
+        const response = getPersonalityResponse('global', text);
+        addMessage('global', 'assistant', response);
+      }, 800);
+      return;
+    }
+
     const transaction = addTransaction(accountId, text);
     
     setTimeout(() => {
@@ -95,6 +105,7 @@ const Index = () => {
   const navItems = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
     { id: 'accounts', label: 'Accounts', icon: Users },
+    { id: 'coach', label: 'Coach', icon: MessageSquare },
     { id: 'insights', label: 'Insights', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
@@ -133,6 +144,13 @@ const Index = () => {
                 onToggleFavorite={toggleFavorite}
               />
             )}
+            {activeTab === 'coach' && (
+              <GlobalChat 
+                accounts={state.accounts}
+                messages={state.globalMessages}
+                onSendMessage={(text) => handleSendMessage('global', text)}
+              />
+            )}
             {activeTab === 'insights' && <Insights accounts={state.accounts} />}
             {activeTab === 'settings' && (
               <Settings 
@@ -146,7 +164,7 @@ const Index = () => {
         </AnimatePresence>
       </main>
 
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg">
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex justify-around items-center shadow-2xl">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -156,7 +174,7 @@ const Index = () => {
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300",
+                  "relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300",
                   isActive ? "text-purple-400" : "text-white/40 hover:text-white/60"
                 )}
               >
@@ -167,8 +185,8 @@ const Index = () => {
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <Icon size={20} className={cn("transition-transform", isActive && "scale-110")} />
-                <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
+                <Icon size={18} className={cn("transition-transform", isActive && "scale-110")} />
+                <span className="text-[9px] font-medium uppercase tracking-wider">{item.label}</span>
               </button>
             );
           })}
