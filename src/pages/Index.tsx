@@ -8,7 +8,7 @@ import GlobalChat from './GlobalChat';
 import Auth from '../components/Auth';
 import SplashScreen from '../components/SplashScreen';
 import { supabase } from '@/lib/supabase';
-import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon, MessageSquare, LogIn, LogOut, User, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon, MessageSquare, LogIn, LogOut, User, ShieldCheck, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { showSuccess } from '../utils/toast';
@@ -22,16 +22,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import QuickLog from '../components/QuickLog';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'coach' | 'insights' | 'settings'>('dashboard');
   const [showAuth, setShowAuth] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [showQuickLog, setShowQuickLog] = useState(false);
   const [user, setUser] = useState<any>(null);
   const { state, addTransaction, toggleFavorite, addMessage, updateGoal, resetData, setState } = useTrustStore();
 
   useEffect(() => {
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
@@ -41,18 +48,14 @@ const Index = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
-      } else if (!showSplash) {
-        // If no session and splash is done, we don't force Richard here 
-        // unless it's the first load
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [showSplash]);
+  }, []);
 
   const handleSplashComplete = () => {
     setShowSplash(false);
-    // Log in as Richard automatically if no user is present
     if (!user) {
       const richardUser = {
         id: 'richard-id',
@@ -84,6 +87,11 @@ const Index = () => {
     }, 1000);
   };
 
+  const handleQuickLog = (accountId: string, text: string) => {
+    handleSendMessage(accountId, text);
+    setShowQuickLog(false);
+  };
+
   const handleExport = () => {
     const dataStr = JSON.stringify(state);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -109,7 +117,6 @@ const Index = () => {
         {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
       </AnimatePresence>
 
-      {/* iOS 26 Aurora Background */}
       <div className="aurora-bg">
         <div className="aurora-blob w-[600px] h-[600px] bg-purple-400/40 -top-20 -left-20" />
         <div className="aurora-blob w-[500px] h-[500px] bg-blue-400/40 top-1/4 -right-20" style={{ animationDelay: '-5s' }} />
@@ -125,39 +132,48 @@ const Index = () => {
           <span className="text-xl font-black tracking-tight">TrustBank</span>
         </div>
         
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="ios-button rounded-full gap-2 px-4">
-                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold">
-                  {user.email?.[0].toUpperCase()}
-                </div>
-                <span className="font-semibold">{user.email?.split('@')[0]}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 rounded-[2rem] glass-effect-heavy p-2 border-none">
-              <DropdownMenuLabel className="px-4 py-3">My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem onClick={() => setActiveTab('settings')} className="rounded-xl px-4 py-3 focus:bg-white/10">
-                <SettingsIcon className="mr-3 h-5 w-5" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem onClick={handleSignOut} className="rounded-xl px-4 py-3 text-destructive focus:bg-destructive/10">
-                <LogOut className="mr-3 h-5 w-5" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
+        <div className="flex items-center gap-4">
           <Button 
-            onClick={() => setShowAuth(true)}
-            className="ios-button rounded-full gap-2 px-6 h-12 font-bold"
+            onClick={() => setShowQuickLog(true)}
+            className="ios-button rounded-full w-12 h-12 p-0 flex items-center justify-center bg-primary text-white shadow-lg shadow-primary/20"
           >
-            <LogIn size={18} />
-            Sign In
+            <Plus size={24} />
           </Button>
-        )}
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="ios-button rounded-full gap-2 px-4">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold">
+                    {user.email?.[0].toUpperCase()}
+                  </div>
+                  <span className="font-semibold">{user.email?.split('@')[0]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 rounded-[2rem] glass-effect-heavy p-2 border-none">
+                <DropdownMenuLabel className="px-4 py-3">My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem onClick={() => setActiveTab('settings')} className="rounded-xl px-4 py-3 focus:bg-white/10">
+                  <SettingsIcon className="mr-3 h-5 w-5" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem onClick={handleSignOut} className="rounded-xl px-4 py-3 text-destructive focus:bg-destructive/10">
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button 
+              onClick={() => setShowAuth(true)}
+              className="ios-button rounded-full gap-2 px-6 h-12 font-bold"
+            >
+              <LogIn size={18} />
+              Sign In
+            </Button>
+          )}
+        </div>
       </header>
 
       <main className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-32">
@@ -173,9 +189,8 @@ const Index = () => {
               {activeTab === 'dashboard' && (
                 <Dashboard 
                   accounts={state.accounts} 
-                  onSelectAccount={(id) => {
-                    setActiveTab('accounts');
-                  }} 
+                  onSelectAccount={(id) => setActiveTab('accounts')} 
+                  onQuickLog={handleQuickLog}
                 />
               )}
               {activeTab === 'accounts' && (
@@ -207,6 +222,15 @@ const Index = () => {
           )}
         </AnimatePresence>
       </main>
+
+      <Dialog open={showQuickLog} onOpenChange={setShowQuickLog}>
+        <DialogContent className="rounded-[2.5rem] glass-effect-heavy border-none p-8 max-w-lg">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-3xl font-black tracking-tight">Quick Log</DialogTitle>
+          </DialogHeader>
+          <QuickLog accounts={state.accounts} onLog={handleQuickLog} />
+        </DialogContent>
+      </Dialog>
 
       <AnimatePresence>
         {showAuth && <Auth onClose={() => setShowAuth(false)} />}

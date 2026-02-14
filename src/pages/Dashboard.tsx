@@ -1,19 +1,21 @@
 import React from 'react';
 import GlassCard from '../components/GlassCard';
+import QuickLog from '../components/QuickLog';
 import { TrustAccount } from '../types/trust';
 import TrustBadge from '../components/TrustBadge';
 import TrustLevelCircle from '../components/TrustLevelCircle';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, History, Target, Zap, Sun, Sparkles, Award, ArrowRight } from 'lucide-react';
+import { TrendingUp, History, Target, Zap, Sun, Sparkles, Award, ArrowRight, Plus } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, YAxis, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 
 interface DashboardProps {
   accounts: TrustAccount[];
   onSelectAccount: (id: string) => void;
+  onQuickLog: (accountId: string, text: string) => void;
 }
 
-const Dashboard = ({ accounts, onSelectAccount }: DashboardProps) => {
+const Dashboard = ({ accounts, onSelectAccount, onQuickLog }: DashboardProps) => {
   const overallScore = Math.round(accounts.reduce((acc, curr) => acc + curr.balance, 0) / accounts.length);
   
   const allTransactions = accounts
@@ -45,6 +47,16 @@ const Dashboard = ({ accounts, onSelectAccount }: DashboardProps) => {
           </div>
         </GlassCard>
       </header>
+
+      <section>
+        <div className="flex items-center gap-3 mb-6">
+          <Zap className="text-primary" size={24} />
+          <h2 className="text-2xl font-black tracking-tight">Quick Log</h2>
+        </div>
+        <GlassCard className="p-8 border-none bg-white/20 dark:bg-white/5">
+          <QuickLog accounts={accounts} onLog={onQuickLog} />
+        </GlassCard>
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <GlassCard className="lg:col-span-2 relative overflow-hidden group p-10">
