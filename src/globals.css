@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
@@ -76,11 +76,11 @@
 }
 
 .glass-effect {
-  @apply backdrop-blur-xl bg-white/40 dark:bg-black/40 border border-white/20 dark:border-white/10 shadow-xl;
+  @apply backdrop-blur-xl bg-white/70 dark:bg-black/40 border border-black/5 dark:border-white/10 shadow-xl;
 }
 
 .uplifting-gradient {
-  background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
 
 .dark .uplifting-gradient {

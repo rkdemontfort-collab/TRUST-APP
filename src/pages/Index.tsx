@@ -5,24 +5,21 @@ import Accounts from './Accounts';
 import Insights from './Insights';
 import Settings from './Settings';
 import GlobalChat from './GlobalChat';
-import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon, MessageSquare, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { showSuccess } from '../utils/toast';
 import { getAIResponse } from '../utils/aiAssistant';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'coach' | 'insights' | 'settings'>('dashboard');
   const { state, addTransaction, toggleFavorite, addMessage, updateGoal, resetData, setState } = useTrustStore();
 
   const handleSendMessage = (accountId: string | 'global', text: string) => {
-    // 1. Add user message immediately
     addMessage(accountId, 'user', text);
-    
-    // 2. Determine if it's a transaction or just a chat
     const transaction = accountId === 'global' ? null : addTransaction(accountId, text);
     
-    // 3. Simulate "Thinking" delay for realism
     setTimeout(() => {
       const response = getAIResponse(accountId, text, state.accounts, transaction);
       addMessage(accountId, 'assistant', response, transaction?.id);
@@ -53,14 +50,21 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-purple-500/30">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-50 dark:opacity-100">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px]" />
         <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] rounded-full bg-blue-600/10 blur-[120px]" />
         <div className="absolute -bottom-[10%] left-[20%] w-[40%] h-[40%] rounded-full bg-indigo-600/10 blur-[120px]" />
       </div>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 pt-8 pb-24">
+      <header className="relative z-20 max-w-6xl mx-auto px-4 pt-6 flex justify-end">
+        <Button variant="outline" className="rounded-full gap-2 border-primary/20 hover:bg-primary/5">
+          <LogIn size={16} />
+          Sign In
+        </Button>
+      </header>
+
+      <main className="relative z-10 max-w-6xl mx-auto px-4 pt-4 pb-24">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -107,7 +111,7 @@ const Index = () => {
       </main>
 
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg">
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex justify-around items-center shadow-2xl">
+        <div className="bg-background/80 backdrop-blur-2xl border border-border rounded-2xl p-2 flex justify-around items-center shadow-2xl">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -117,13 +121,13 @@ const Index = () => {
                 onClick={() => setActiveTab(item.id as any)}
                 className={cn(
                   "relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300",
-                  isActive ? "text-purple-400" : "text-white/40 hover:text-white/60"
+                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="nav-glow"
-                    className="absolute inset-0 bg-purple-500/10 rounded-xl"
+                    className="absolute inset-0 bg-primary/10 rounded-xl"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
