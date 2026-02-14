@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TrustAccount, Transaction, Message, AppSettings, TrustState, TransactionType } from '../types/trust';
 import { judgeAction } from '../utils/judgmentEngine';
+import confetti from 'canvas-confetti';
 
 const INITIAL_ACCOUNTS: TrustAccount[] = [
   { id: 'mum', person: 'Mum', emoji: '👩', balance: 600, lieCount: 1, goal: 800, transactions: [], weeklyHistory: [580, 590, 600], totalDeposits: 25, totalWithdrawals: 35, lastActive: new Date().toISOString() },
@@ -52,7 +53,6 @@ export const useTrustStore = () => {
     const oldBalance = account.balance;
     let newBalance = judgment.type === 'DEPOSIT' ? oldBalance + judgment.amount : oldBalance - judgment.amount;
     
-    // Clamp balance between 300 and 900
     newBalance = Math.max(300, Math.min(900, newBalance));
 
     const transaction: Transaction = {
@@ -65,7 +65,18 @@ export const useTrustStore = () => {
       oldBalance,
       newBalance,
       timestamp: new Date().toISOString(),
+      isFavorite: false
     };
+
+    // Trigger confetti if goal reached
+    if (oldBalance < account.goal && newBalance >= account.goal) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#a855f7', '#3b82f6', '#10b981']
+      });
+    }
 
     setState(prev => ({
       ...prev,
@@ -89,6 +100,23 @@ export const useTrustStore = () => {
 
     return transaction;
   }, [state.accounts]);
+
+  const toggleFavorite = useCallback((accountId: string, transactionId: string) => {
+    setState(prev => ({
+      ...prev,
+      accounts: prev.accounts.map(acc => {
+        if (acc.id === accountId) {
+          return {
+            ...acc,
+            transactions: acc.transactions.map(t => 
+              t.id === transactionId ? { ...t, isFavorite: !t.isFavorite } : t
+            )
+          };
+        }
+        return acc;
+      })
+    }));
+  }, []);
 
   const addMessage = useCallback((accountId: string, role: 'user' | 'assistant', content: string, transactionId?: string) => {
     setState(prev => ({
@@ -120,42 +148,10 @@ export const useTrustStore = () => {
   return {
     state,
     addTransaction,
+    toggleFavorite,
     addMessage,
     updateGoal,
     resetData,
     setState
   };
 };
-</dyad-hook>
-
-<dyad-write path="src/components/GlassCard.tsx" description="A reusable glass-morphism card component.">
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
-
-interface GlassCardProps {
-  children: React.ReactNode;
-  className?: string;
-  hover?: boolean;
-  onClick?: () => void;
-}
-
-const GlassCard = ({ children, className, hover = false, onClick }: GlassCardProps) => {
-  return (
-    <motion.div
-      whileHover={hover ? { scale: 1.02, translateY: -4 } : {}}
-      onClick={onClick}
-      className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-2xl",
-        hover && "cursor-pointer hover:bg-white/10 transition-colors",
-        className
-      )}
-    >
-      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-purple-500/10 blur-3xl" />
-      <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-blue-500/10 blur-3xl" />
-      <div className="relative z-10">{children}</div>
-    </motion.div>
-  );
-};
-
-export default GlassCard;

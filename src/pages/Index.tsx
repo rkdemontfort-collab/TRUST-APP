@@ -11,7 +11,7 @@ import { showSuccess, showError } from '../utils/toast';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'insights' | 'settings'>('dashboard');
-  const { state, addTransaction, addMessage, updateGoal, resetData, setState } = useTrustStore();
+  const { state, addTransaction, toggleFavorite, addMessage, updateGoal, resetData, setState } = useTrustStore();
 
   const handleSendMessage = (accountId: string, text: string) => {
     addMessage(accountId, 'user', text);
@@ -73,8 +73,6 @@ const Index = () => {
                 accounts={state.accounts} 
                 onSelectAccount={(id) => {
                   setActiveTab('accounts');
-                  // We'd need a way to pass the selected ID to Accounts, 
-                  // but for now it just switches view.
                 }} 
               />
             )}
@@ -84,6 +82,7 @@ const Index = () => {
                 messages={state.messages}
                 onSendMessage={handleSendMessage}
                 onUpdateGoal={updateGoal}
+                onToggleFavorite={toggleFavorite}
               />
             )}
             {activeTab === 'insights' && <Insights accounts={state.accounts} />}
