@@ -5,10 +5,11 @@ import Accounts from './Accounts';
 import Insights from './Insights';
 import Settings from './Settings';
 import GlobalChat from './GlobalChat';
+import CalendarPage from './Calendar';
 import Auth from '../components/Auth';
 import SplashScreen from '../components/SplashScreen';
 import { supabase } from '@/lib/supabase';
-import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon, MessageSquare, LogIn, LogOut, User, ShieldCheck, Plus } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Settings as SettingsIcon, MessageSquare, LogIn, LogOut, User, ShieldCheck, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { showSuccess } from '../utils/toast';
@@ -31,7 +32,7 @@ import {
 import QuickLog from '../components/QuickLog';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'coach' | 'insights' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'coach' | 'insights' | 'settings' | 'calendar'>('dashboard');
   const [showAuth, setShowAuth] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [showQuickLog, setShowQuickLog] = useState(false);
@@ -106,6 +107,7 @@ const Index = () => {
   const navItems = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
     { id: 'accounts', label: 'Accounts', icon: Users },
+    { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
     { id: 'coach', label: 'Coach', icon: MessageSquare },
     { id: 'insights', label: 'Insights', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
@@ -202,6 +204,7 @@ const Index = () => {
                   onToggleFavorite={toggleFavorite}
                 />
               )}
+              {activeTab === 'calendar' && <CalendarPage />}
               {activeTab === 'coach' && (
                 <GlobalChat 
                   accounts={state.accounts}
