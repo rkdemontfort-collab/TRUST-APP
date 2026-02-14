@@ -14,20 +14,39 @@ const Index = () => {
   const { state, addTransaction, toggleFavorite, addMessage, updateGoal, resetData, setState } = useTrustStore();
 
   const handleSendMessage = (accountId: string, text: string) => {
+    const account = state.accounts.find(a => a.id === accountId);
+    if (!account) return;
+
+    // 1. Add user message
     addMessage(accountId, 'user', text);
     
+    // 2. Try to record a transaction
     const transaction = addTransaction(accountId, text);
     
+    // 3. Generate AI response
     setTimeout(() => {
+      let response = "";
+      
       if (transaction) {
-        const response = transaction.type === 'DEPOSIT' 
+        // If an action was recorded
+        response = transaction.type === 'DEPOSIT' 
           ? `I've recorded a deposit of ${transaction.amount} points. ${transaction.context}`
           : `I've recorded a withdrawal of ${transaction.amount} points. ${transaction.context}`;
         
         addMessage(accountId, 'assistant', response, transaction.id);
         showSuccess(`${transaction.type === 'DEPOSIT' ? 'Deposit' : 'Withdrawal'} recorded!`);
       } else {
-        addMessage(accountId, 'assistant', "I'm not sure how to judge that action. Could you be more specific about what happened?");
+        // Casual conversation handling
+        const lowerText = text.toLowerCase();
+        if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey')) {
+          response = `Hi! I'm your trust assistant for ${account.person}. How was your day with them? Did you do anything that built or tested their trust?`;
+        } else if (lowerText.includes('how are you')) {
+          response = `I'm doing well, just keeping an eye on your integrity! What's on your mind regarding ${account.person}?`;
+        } else {
+          response = `I'm listening. If you want to record a trust event, tell me what happened (e.g., "I told the truth about..." or "I lied about...")`;
+        }
+        
+        addMessage(accountId, 'assistant', response);
       }
     }, 800);
   };
