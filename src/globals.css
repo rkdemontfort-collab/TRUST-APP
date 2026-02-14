@@ -55,7 +55,9 @@
   }
   body {
     @apply bg-background text-foreground transition-colors duration-500 overflow-x-hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* Apple System Font Stack */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
@@ -101,4 +103,13 @@
 
 .ios-button {
   @apply glass-effect hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-300 active:scale-95;
+}
+
+/* Trello-inspired scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
