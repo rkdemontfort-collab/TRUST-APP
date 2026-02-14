@@ -11,6 +11,7 @@ export interface Transaction {
   newBalance: number;
   timestamp: string;
   isFavorite?: boolean;
+  severity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 }
 
 export interface TrustAccount {
@@ -33,12 +34,16 @@ export interface Message {
   content: string;
   timestamp: string;
   transactionId?: string;
+  isEvaluating?: boolean;
 }
+
+export type AIStrictness = 'LENIENT' | 'BALANCED' | 'STRICT' | 'SAVAGE';
 
 export interface AppSettings {
   interestRate: number;
   darkMode: boolean;
   notifications: boolean;
+  strictness: AIStrictness;
 }
 
 export interface TrustState {

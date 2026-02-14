@@ -1,88 +1,95 @@
-import { TransactionType, Transaction } from '../types/trust';
+import { TransactionType, AIStrictness } from '../types/trust';
 
 interface JudgmentResult {
   type: TransactionType;
   amount: number;
   action: string;
   explanation: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 }
 
-const RULES = {
-  LYING: { keywords: ['lie', 'lied', 'lying', 'dishonest', 'fabricated', 'made up', 'false', 'untruth'], base: 30, range: [25, 40] },
-  TRUTH: { keywords: ['truth', 'told truth', 'admitted', 'confessed', 'honest', 'came clean', 'owned up'], base: 25, range: [20, 30] },
-  HIDING: { keywords: ['hid', 'hide', 'hidden', 'concealed', 'kept from', 'secretly'], base: 22, range: [20, 25] },
-  SHOPPING_IMPULSE: { keywords: ['shopping', 'bought', 'purchased', 'spent', 'impulse', 'online order'], base: 15, range: [10, 20] },
-  SHOPPING_RESIST: { keywords: ['resisted', "didn't buy", 'saved money'], base: 15, range: [15, 15] },
-  MUMBLE: { keywords: ['mumble', 'mumbled', 'quiet', 'stayed quiet'], base: 8, range: [5, 10] },
-  SPEAK_UP: { keywords: ['spoke clearly', 'spoke up', 'expressed', 'shared'], base: 12, range: [10, 15] },
-  PUBLIC_SPEAKING: { keywords: ['assembly', 'public', 'presentation'], base: 20, range: [20, 20] },
-  ARGUE: { keywords: ['argued', 'argument', 'shouted', 'yelled', 'fought', 'disagreed'], base: 15, range: [15, 15] },
-  APOLOGY: { keywords: ['sorry', 'apologized', 'apology', 'regret', 'remorse'], base: 12, range: [10, 15] },
-  HELPING: { keywords: ['helped', 'assisted', 'supported'], base: 12, range: [12, 12] },
-  LISTENING: { keywords: ['listened', 'understood'], base: 10, range: [10, 10] },
-  PROCRASTINATE: { keywords: ['procrastinated', 'delayed', 'put off'], base: 8, range: [8, 8] },
-  MUSIC: { keywords: ['practiced', 'music', 'piano', 'instrument'], base: 8, range: [8, 8] },
-  KINDNESS: { keywords: ['kind', 'nice', 'thoughtful'], base: 10, range: [10, 10] },
+const MULTIPLIERS: Record<AIStrictness, number> = {
+  LENIENT: 0.5,
+  BALANCED: 1.0,
+  STRICT: 1.5,
+  SAVAGE: 2.5
 };
 
-export const judgeAction = (text: string, person: string): JudgmentResult | null => {
+export const judgeAction = (text: string, person: string, strictness: AIStrictness): JudgmentResult | null => {
   const lowerText = text.toLowerCase();
-  
-  // Special case: Cocoa incident
-  if (lowerText.includes('cocoa') || lowerText.includes('chocolate milk')) {
+  const multiplier = MULTIPLIERS[strictness];
+
+  // Helper to calculate amount with strictness
+  const calc = (base: number) => Math.round(base * multiplier);
+
+  // 1. CRITICAL OFFENSES (Lying/Betrayal)
+  if (lowerText.includes('lie') || lowerText.includes('lied') || lowerText.includes('dishonest') || lowerText.includes('cocoa')) {
+    const isCocoa = lowerText.includes('cocoa');
     return {
       type: 'WITHDRAWAL',
-      amount: 40,
-      action: 'Lying (Cocoa Incident)',
-      explanation: `This reminds me of the cocoa incident. Lying about obvious things carries a heavy penalty.`
+      amount: calc(isCocoa ? 45 : 35),
+      action: isCocoa ? 'The Cocoa Incident' : 'Dishonesty',
+      severity: 'CRITICAL',
+      explanation: isCocoa 
+        ? "This is a major breach of trust. Lying about the small things makes it impossible to trust the big things."
+        : "Dishonesty is the fastest way to bankrupt your trust account."
     };
   }
 
-  // Check rules
-  if (RULES.LYING.keywords.some(k => lowerText.includes(k))) {
-    const amount = Math.floor(Math.random() * (RULES.LYING.range[1] - RULES.LYING.range[0] + 1)) + RULES.LYING.range[0];
-    return { type: 'WITHDRAWAL', amount, action: 'Lying', explanation: 'Dishonesty breaks trust quickly.' };
+  // 2. HIGH SEVERITY (Hiding/Arguments)
+  if (lowerText.includes('hid') || lowerText.includes('secret') || lowerText.includes('argue') || lowerText.includes('yell')) {
+    return {
+      type: 'WITHDRAWAL',
+      amount: calc(25),
+      action: 'Defensive Behavior',
+      severity: 'HIGH',
+      explanation: "Secrecy and aggression create walls between you and others."
+    };
   }
 
-  if (RULES.TRUTH.keywords.some(k => lowerText.includes(k))) {
-    const amount = Math.floor(Math.random() * (RULES.TRUTH.range[1] - RULES.TRUTH.range[0] + 1)) + RULES.TRUTH.range[0];
-    return { type: 'DEPOSIT', amount, action: 'Telling the Truth', explanation: 'Honesty is the foundation of trust.' };
+  // 3. MEDIUM SEVERITY (Impulse/Procrastination)
+  if (lowerText.includes('bought') || lowerText.includes('spent') || lowerText.includes('later') || lowerText.includes('procrastinate')) {
+    return {
+      type: 'WITHDRAWAL',
+      amount: calc(15),
+      action: 'Lack of Discipline',
+      severity: 'MEDIUM',
+      explanation: "Self-trust requires discipline. Giving in to impulses weakens your integrity."
+    };
   }
 
-  if (RULES.HIDING.keywords.some(k => lowerText.includes(k))) {
-    const amount = person === 'Mum' ? 25 : 20;
-    return { type: 'WITHDRAWAL', amount, action: 'Hiding Food/Items', explanation: `Hiding things creates distance, especially with ${person}.` };
+  // 4. POSITIVE: HIGH (Truth/Ownership)
+  if (lowerText.includes('truth') || lowerText.includes('admit') || lowerText.includes('sorry') || lowerText.includes('apologize')) {
+    return {
+      type: 'DEPOSIT',
+      amount: calc(30),
+      action: 'Radical Honesty',
+      severity: 'HIGH',
+      explanation: "Owning your mistakes and telling the truth even when it's hard is the best way to build trust."
+    };
   }
 
-  if (RULES.SHOPPING_RESIST.keywords.some(k => lowerText.includes(k))) {
-    return { type: 'DEPOSIT', amount: 15, action: 'Resisted Impulse', explanation: 'Great job controlling the urge to shop!' };
+  // 5. POSITIVE: MEDIUM (Helping/Speaking Up)
+  if (lowerText.includes('help') || lowerText.includes('spoke up') || lowerText.includes('clear') || lowerText.includes('kind')) {
+    return {
+      type: 'DEPOSIT',
+      amount: calc(15),
+      action: 'Positive Contribution',
+      severity: 'MEDIUM',
+      explanation: "Small acts of kindness and clear communication are steady deposits."
+    };
   }
 
-  if (RULES.SHOPPING_IMPULSE.keywords.some(k => lowerText.includes(k))) {
-    return { type: 'WITHDRAWAL', amount: 15, action: 'Impulse Shopping', explanation: 'Financial discipline is part of self-trust.' };
+  // 6. POSITIVE: LOW (Practice/Routine)
+  if (lowerText.includes('practice') || lowerText.includes('piano') || lowerText.includes('music') || lowerText.includes('homework')) {
+    return {
+      type: 'DEPOSIT',
+      amount: calc(10),
+      action: 'Consistency',
+      severity: 'LOW',
+      explanation: "Consistency in your daily responsibilities builds a foundation of reliability."
+    };
   }
-
-  if (RULES.SPEAK_UP.keywords.some(k => lowerText.includes(k))) {
-    const isPublic = RULES.PUBLIC_SPEAKING.keywords.some(k => lowerText.includes(k));
-    return { type: 'DEPOSIT', amount: isPublic ? 20 : 12, action: 'Speaking Up', explanation: 'Your voice matters. Well done for speaking clearly.' };
-  }
-
-  if (RULES.MUMBLE.keywords.some(k => lowerText.includes(k))) {
-    return { type: 'WITHDRAWAL', amount: 8, action: 'Mumbling/Quiet', explanation: 'Communication is key to being understood.' };
-  }
-
-  if (RULES.APOLOGY.keywords.some(k => lowerText.includes(k))) {
-    return { type: 'DEPOSIT', amount: 12, action: 'Sincere Apology', explanation: 'Owning your mistakes builds respect.' };
-  }
-
-  if (RULES.ARGUE.keywords.some(k => lowerText.includes(k))) {
-    return { type: 'WITHDRAWAL', amount: 15, action: 'Defensive Arguing', explanation: 'Try to listen before reacting defensively.' };
-  }
-
-  if (RULES.HELPING.keywords.some(k => lowerText.includes(k))) return { type: 'DEPOSIT', amount: 12, action: 'Helping', explanation: 'Being helpful strengthens bonds.' };
-  if (RULES.KINDNESS.keywords.some(k => lowerText.includes(k))) return { type: 'DEPOSIT', amount: 10, action: 'Kindness', explanation: 'Small acts of kindness go a long way.' };
-  if (RULES.MUSIC.keywords.some(k => lowerText.includes(k))) return { type: 'DEPOSIT', amount: 8, action: 'Practice', explanation: 'Consistency in your hobbies builds self-discipline.' };
-  if (RULES.PROCRASTINATE.keywords.some(k => lowerText.includes(k))) return { type: 'WITHDRAWAL', amount: 8, action: 'Procrastination', explanation: 'Delaying tasks erodes self-trust.' };
 
   return null;
 };

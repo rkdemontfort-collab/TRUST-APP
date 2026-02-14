@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TrustAccount, Transaction, Message, AppSettings, TrustState, TransactionType } from '../types/trust';
+import { TrustAccount, Transaction, Message, AppSettings, TrustState, TransactionType, AIStrictness } from '../types/trust';
 import { judgeAction } from '../utils/judgmentEngine';
 import confetti from 'canvas-confetti';
 
@@ -11,31 +11,15 @@ const INITIAL_ACCOUNTS: TrustAccount[] = [
   { id: 'self', person: 'Self', emoji: '🧘', balance: 650, lieCount: 0, goal: 850, transactions: [], weeklyHistory: [640, 645, 650], totalDeposits: 15, totalWithdrawals: 5, lastActive: new Date().toISOString() },
 ];
 
-const SEED_TRANSACTIONS: Record<string, Transaction[]> = {
-  mum: [
-    { id: 'm1', type: 'WITHDRAWAL', amount: 35, explanation: 'I lied about the cocoa', action: 'Lying', context: 'Cocoa incident', oldBalance: 635, newBalance: 600, timestamp: new Date(Date.now() - 86400000).toISOString() },
-    { id: 'm2', type: 'DEPOSIT', amount: 15, explanation: 'I told mum I was sorry', action: 'Apology', context: '', oldBalance: 585, newBalance: 600, timestamp: new Date(Date.now() - 604800000).toISOString() },
-  ],
-  self: [
-    { id: 's1', type: 'DEPOSIT', amount: 15, explanation: 'I resisted buying new shoes', action: 'Resisted Impulse', context: '', oldBalance: 635, newBalance: 650, timestamp: new Date().toISOString() },
-    { id: 's2', type: 'WITHDRAWAL', amount: 5, explanation: 'I mumbled when asked about school', action: 'Mumbling', context: '', oldBalance: 655, newBalance: 650, timestamp: new Date(Date.now() - 86400000).toISOString() },
-  ]
-};
-
 export const useTrustStore = () => {
   const [state, setState] = useState<TrustState>(() => {
     const saved = localStorage.getItem('trust_bank_data');
     if (saved) return JSON.parse(saved);
     
-    const accounts = INITIAL_ACCOUNTS.map(acc => ({
-      ...acc,
-      transactions: SEED_TRANSACTIONS[acc.id] || []
-    }));
-    
     return {
-      accounts,
+      accounts: INITIAL_ACCOUNTS,
       messages: {},
-      settings: { interestRate: 0.01, darkMode: true, notifications: true }
+      settings: { interestRate: 0.01, darkMode: true, notifications: true, strictness: 'BALANCED' }
     };
   });
 
@@ -47,7 +31,7 @@ export const useTrustStore = () => {
     const account = state.accounts.find(a => a.id === accountId);
     if (!account) return null;
 
-    const judgment = judgeAction(text, account.person);
+    const judgment = judgeAction(text, account.person, state.settings.strictness);
     if (!judgment) return null;
 
     const oldBalance = account.balance;
@@ -65,10 +49,10 @@ export const useTrustStore = () => {
       oldBalance,
       newBalance,
       timestamp: new Date().toISOString(),
-      isFavorite: false
+      isFavorite: false,
+      severity: judgment.severity
     };
 
-    // Trigger confetti if goal reached
     if (oldBalance < account.goal && newBalance >= account.goal) {
       confetti({
         particleCount: 150,
@@ -82,12 +66,11 @@ export const useTrustStore = () => {
       ...prev,
       accounts: prev.accounts.map(acc => {
         if (acc.id === accountId) {
-          const isLie = judgment.action.toLowerCase().includes('lie');
-          const isTruth = judgment.action.toLowerCase().includes('truth');
+          const isLie = judgment.action.toLowerCase().includes('lie') || judgment.action.toLowerCase().includes('dishonesty');
           return {
             ...acc,
             balance: newBalance,
-            lieCount: isLie ? acc.lieCount + 1 : (isTruth ? Math.max(0, acc.lieCount - 1) : acc.lieCount),
+            lieCount: isLie ? acc.lieCount + 1 : acc.lieCount,
             transactions: [transaction, ...acc.transactions],
             totalDeposits: judgment.type === 'DEPOSIT' ? acc.totalDeposits + judgment.amount : acc.totalDeposits,
             totalWithdrawals: judgment.type === 'WITHDRAWAL' ? acc.totalWithdrawals + judgment.amount : acc.totalWithdrawals,
@@ -99,7 +82,7 @@ export const useTrustStore = () => {
     }));
 
     return transaction;
-  }, [state.accounts]);
+  }, [state.accounts, state.settings.strictness]);
 
   const toggleFavorite = useCallback((accountId: string, transactionId: string) => {
     setState(prev => ({
