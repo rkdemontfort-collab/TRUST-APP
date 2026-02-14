@@ -6,60 +6,43 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-
     --primary: 262.1 83.3% 57.8%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
-
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 262.1 83.3% 57.8%;
-
-    --radius: 1.5rem;
+    --radius: 2rem;
   }
 
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-
     --primary: 263.4 70% 50.4%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 263.4 70% 50.4%;
@@ -71,18 +54,51 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground transition-colors duration-500;
+    @apply bg-background text-foreground transition-colors duration-500 overflow-x-hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 }
 
 .glass-effect {
-  @apply backdrop-blur-xl bg-white/70 dark:bg-black/40 border border-black/5 dark:border-white/10 shadow-xl;
+  @apply backdrop-blur-[40px] bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
 }
 
-.uplifting-gradient {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+.glass-effect-heavy {
+  @apply backdrop-blur-[60px] bg-white/50 dark:bg-black/50 border border-white/50 dark:border-white/20 shadow-2xl;
 }
 
-.dark .uplifting-gradient {
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+.aurora-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  filter: blur(100px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  animation: aurora-move 20s infinite alternate;
+}
+
+.dark .aurora-blob {
+  mix-blend-mode: screen;
+}
+
+@keyframes aurora-move {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(20%, 20%) scale(1.2); }
+}
+
+.ios-dock {
+  @apply glass-effect-heavy rounded-[2.5rem] p-2 flex justify-around items-center;
+}
+
+.ios-button {
+  @apply glass-effect hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-300 active:scale-95;
 }

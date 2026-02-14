@@ -80,31 +80,40 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-50 dark:opacity-100">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px]" />
-        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] rounded-full bg-blue-600/10 blur-[120px]" />
-        <div className="absolute -bottom-[10%] left-[20%] w-[40%] h-[40%] rounded-full bg-indigo-600/10 blur-[120px]" />
+      {/* iOS 26 Aurora Background */}
+      <div className="aurora-bg">
+        <div className="aurora-blob w-[600px] h-[600px] bg-purple-400/40 -top-20 -left-20" />
+        <div className="aurora-blob w-[500px] h-[500px] bg-blue-400/40 top-1/4 -right-20" style={{ animationDelay: '-5s' }} />
+        <div className="aurora-blob w-[700px] h-[700px] bg-pink-400/30 bottom-0 left-1/4" style={{ animationDelay: '-10s' }} />
+        <div className="aurora-blob w-[400px] h-[400px] bg-indigo-400/40 top-1/2 left-1/2" style={{ animationDelay: '-15s' }} />
       </div>
 
-      <header className="relative z-20 max-w-6xl mx-auto px-4 pt-6 flex justify-end">
+      <header className="relative z-20 max-w-6xl mx-auto px-6 pt-8 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <span className="text-white font-black text-xl">T</span>
+          </div>
+          <span className="text-xl font-black tracking-tight">TrustBank</span>
+        </div>
+        
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-full gap-2 border-primary/20 hover:bg-primary/5">
-                <User size={16} />
-                {user.email?.split('@')[0]}
+              <Button variant="ghost" className="ios-button rounded-full gap-2 px-4">
+                <User size={18} />
+                <span className="font-semibold">{user.email?.split('@')[0]}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-2xl">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setActiveTab('settings')}>
-                <SettingsIcon className="mr-2 h-4 w-4" />
+            <DropdownMenuContent align="end" className="w-64 rounded-[2rem] glass-effect-heavy p-2 border-none">
+              <DropdownMenuLabel className="px-4 py-3">My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem onClick={() => setActiveTab('settings')} className="rounded-xl px-4 py-3 focus:bg-white/10">
+                <SettingsIcon className="mr-3 h-5 w-5" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem onClick={handleSignOut} className="rounded-xl px-4 py-3 text-destructive focus:bg-destructive/10">
+                <LogOut className="mr-3 h-5 w-5" />
                 Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -112,23 +121,22 @@ const Index = () => {
         ) : (
           <Button 
             onClick={() => setShowAuth(true)}
-            variant="outline" 
-            className="rounded-full gap-2 border-primary/20 hover:bg-primary/5"
+            className="ios-button rounded-full gap-2 px-6 h-12 font-bold"
           >
-            <LogIn size={16} />
+            <LogIn size={18} />
             Sign In
           </Button>
         )}
       </header>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 pt-4 pb-24">
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-32">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.02, y: -20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           >
             {activeTab === 'dashboard' && (
               <Dashboard 
@@ -171,8 +179,8 @@ const Index = () => {
         {showAuth && <Auth onClose={() => setShowAuth(false)} />}
       </AnimatePresence>
 
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg">
-        <div className="bg-background/80 backdrop-blur-2xl border border-border rounded-2xl p-2 flex justify-around items-center shadow-2xl">
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-lg">
+        <div className="ios-dock">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -181,19 +189,19 @@ const Index = () => {
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300",
+                  "relative flex flex-col items-center gap-1.5 px-5 py-3 rounded-3xl transition-all duration-500",
                   isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="nav-glow"
-                    className="absolute inset-0 bg-primary/10 rounded-xl"
+                    className="absolute inset-0 bg-white/40 dark:bg-white/10 rounded-3xl shadow-inner"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <Icon size={18} className={cn("transition-transform", isActive && "scale-110")} />
-                <span className="text-[9px] font-medium uppercase tracking-wider">{item.label}</span>
+                <Icon size={24} className={cn("transition-all duration-500", isActive && "scale-110 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]")} />
+                <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
               </button>
             );
           })}
