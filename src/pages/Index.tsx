@@ -13,40 +13,70 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'insights' | 'settings'>('dashboard');
   const { state, addTransaction, toggleFavorite, addMessage, updateGoal, resetData, setState } = useTrustStore();
 
+  const getPersonalityResponse = (accountId: string, text: string, transaction?: any) => {
+    const lowerText = text.toLowerCase();
+    
+    const personalities: Record<string, any> = {
+      mum: {
+        greeting: "Hi there. I'm keeping track of things for Mum. How's the honesty level today?",
+        deposit: "That's a great deposit. Mum really appreciates when you're upfront like that.",
+        withdrawal: "Ouch. That's going to hurt your standing with Mum. We need to work on this.",
+        casual: "I'm listening. Mum values consistency above all else."
+      },
+      dad: {
+        greeting: "Hey. I'm the trust monitor for Dad. Ready to log some progress?",
+        deposit: "Good work. Dad likes seeing this kind of responsibility.",
+        withdrawal: "That's a withdrawal. Dad expects better follow-through than that.",
+        casual: "Got it. Dad's big on 'doing what you say you'll do'."
+      },
+      teacher: {
+        greeting: "Hello. I'm monitoring your academic integrity and reliability for your teacher.",
+        deposit: "Excellent. This builds significant professional trust.",
+        withdrawal: "This is a setback for your reputation in class.",
+        casual: "Understood. Let's keep focusing on your goals."
+      },
+      self: {
+        greeting: "Welcome back. This is your internal integrity mirror. How are we doing with ourselves?",
+        deposit: "You're building self-respect. That's the most important currency you have.",
+        withdrawal: "You let yourself down there. Remember: you can't hide from yourself.",
+        casual: "Reflecting... Your self-trust is the foundation of everything else."
+      },
+      friend: {
+        greeting: "Yo! I'm tracking the vibes and trust for your friend. What's up?",
+        deposit: "Solid move. That's what real friends do.",
+        withdrawal: "That's a bit snakey. Trust is hard to build and easy to break.",
+        casual: "I hear you. Friendship is all about that balance."
+      }
+    };
+
+    const p = personalities[accountId] || personalities['self'];
+
+    if (transaction) {
+      const base = transaction.type === 'DEPOSIT' ? p.deposit : p.withdrawal;
+      return `${base} (${transaction.type === 'DEPOSIT' ? '+' : '-'}${transaction.amount} points). ${transaction.context}`;
+    }
+
+    if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey')) {
+      return p.greeting;
+    }
+
+    return p.casual;
+  };
+
   const handleSendMessage = (accountId: string, text: string) => {
     const account = state.accounts.find(a => a.id === accountId);
     if (!account) return;
 
-    // 1. Add user message
     addMessage(accountId, 'user', text);
     
-    // 2. Try to record a transaction
     const transaction = addTransaction(accountId, text);
     
-    // 3. Generate AI response
     setTimeout(() => {
-      let response = "";
+      const response = getPersonalityResponse(accountId, text, transaction);
+      addMessage(accountId, 'assistant', response, transaction?.id);
       
       if (transaction) {
-        // If an action was recorded
-        response = transaction.type === 'DEPOSIT' 
-          ? `I've recorded a deposit of ${transaction.amount} points. ${transaction.context}`
-          : `I've recorded a withdrawal of ${transaction.amount} points. ${transaction.context}`;
-        
-        addMessage(accountId, 'assistant', response, transaction.id);
         showSuccess(`${transaction.type === 'DEPOSIT' ? 'Deposit' : 'Withdrawal'} recorded!`);
-      } else {
-        // Casual conversation handling
-        const lowerText = text.toLowerCase();
-        if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey')) {
-          response = `Hi! I'm your trust assistant for ${account.person}. How was your day with them? Did you do anything that built or tested their trust?`;
-        } else if (lowerText.includes('how are you')) {
-          response = `I'm doing well, just keeping an eye on your integrity! What's on your mind regarding ${account.person}?`;
-        } else {
-          response = `I'm listening. If you want to record a trust event, tell me what happened (e.g., "I told the truth about..." or "I lied about...")`;
-        }
-        
-        addMessage(accountId, 'assistant', response);
       }
     }, 800);
   };
@@ -71,7 +101,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-purple-500/30">
-      {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px]" />
         <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] rounded-full bg-blue-600/10 blur-[120px]" />
@@ -117,7 +146,6 @@ const Index = () => {
         </AnimatePresence>
       </main>
 
-      {/* Bottom Navigation */}
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex justify-around items-center shadow-2xl">
           {navItems.map((item) => {
