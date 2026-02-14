@@ -1,7 +1,7 @@
 import React from 'react';
-import GlassCard from '@/components/GlassCard';
+import GlassCard from '../components/GlassCard';
 import { TrustAccount, Transaction } from '../types/trust';
-import TrustBadge from '@/components/TrustBadge';
+import TrustBadge from '../components/TrustBadge';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, TrendingDown, History, Target, Zap } from 'lucide-react';
 import { format } from 'date-fns';

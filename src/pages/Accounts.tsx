@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import GlassCard from '@/components/GlassCard';
+import GlassCard from '../components/GlassCard';
 import { TrustAccount, Transaction } from '../types/trust';
-import TrustBadge from '@/components/TrustBadge';
-import ChatInterface from '@/components/ChatInterface';
+import TrustBadge from '../components/TrustBadge';
+import ChatInterface from '../components/ChatInterface';
 import { ArrowLeft, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
 
 interface AccountsProps {
   accounts: TrustAccount[];

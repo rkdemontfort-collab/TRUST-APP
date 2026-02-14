@@ -1,5 +1,5 @@
 import React from 'react';
-import GlassCard from '@/components/GlassCard';
+import GlassCard from '../components/GlassCard';
 import { TrustAccount } from '../types/trust';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Brain, TrendingUp, AlertTriangle, Heart } from 'lucide-react';

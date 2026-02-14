@@ -1,5 +1,5 @@
 import React from 'react';
-import GlassCard from '@/components/GlassCard';
+import GlassCard from '../components/GlassCard';
 import { AppSettings } from '../types/trust';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
